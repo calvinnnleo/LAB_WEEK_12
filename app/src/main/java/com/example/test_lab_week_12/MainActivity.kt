@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.test_lab_week_12.model.Movie
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 class MainActivity : AppCompatActivity() {
     private val movieAdapter by lazy {
@@ -39,12 +40,19 @@ class MainActivity : AppCompatActivity() {
             }
         )[MovieViewModel::class.java]
 
-        // Ganti LiveData observer dengan Flow collector
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     movieViewModel.popularMovies.collect { movies ->
-                        movieAdapter.addMovies(movies)
+                        // ⬇️ TAMBAHKAN FILTER DI SINI
+                        val currentYear = Calendar.getInstance().get(Calendar.YEAR).toString()
+                        val filteredMovies = movies
+                            .filter { movie ->
+                                movie.releaseDate?.startsWith(currentYear) == true
+                            }
+                            .sortedByDescending { it.popularity }
+
+                        movieAdapter.addMovies(filteredMovies)
                     }
                 }
 
